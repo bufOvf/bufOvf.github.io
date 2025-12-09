@@ -1,2 +1,1 @@
-# bufOvf.github.io
-GitHub Pages site
+bufOvf.github.io
