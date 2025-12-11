@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockedOut Intelligence - bufOvf</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <!-- header -->
+    <h1>posts - BlockedOut Intelligence</h1>
+    <nav>
+        <a href="../../index.html">home</a>
+        <a href="../../wiki.html">wiki</a>
+        <a href="../../links.html">links</a>
+        <a href="../../posts.html">posts</a>
+    </nav>
+    <hr>
+
+    <!-- writeup -->
+    <p class="meta">ADFCSA-2025 | OSINT | 80 pts | 2025-12-03</p>
+
+    <h2>Challenge</h2>
+    <p>
+    Our agency has released a redacted PDF that includes sensitive information,
+    but somehow, people still managed to read the censored parts. In this stage
+    of Echo's encrypted archive, your job is to work out how the hidden text
+    leaked and recover it yourself.
+    </p>
+
+    <h2>Summary</h2>
+<p>
+A PDF with "redacted" text. The redaction was done with a transparency mask
+overlay instead of actually removing the data. Extracting embedded images
+with <code>pdfimages</code> reveals the original content.
+</p>
+<pre class="section-header">---------------------------------------------------------------------------
+THE PROBLEM WITH VISUAL REDACTION
+---------------------------------------------------------------------------</pre>
+<p>
+The PDF shows a government memo with a black bar covering sensitive text:
+</p>
+<img src="img/blockedout-redacted.png" alt="Redacted PDF showing black bar over text">
+<p>
+This looks redacted, but opening the PDF in a viewer just renders
+what it's told to render. The actual data might still be there.
+</p>
+<pre class="section-header">---------------------------------------------------------------------------
+EXTRACTION
+---------------------------------------------------------------------------</pre>
+<p>
+Pull embedded images directly from the PDF:
+</p>
+<pre>
+    $ pdfimages -all censored_memo.pdf img
+
+    $ ls -la
+    img-000.png    # Original document image (1240x1753)
+    img-001.png    # Transparency mask (1240x1753, 1-bit)
+</pre>
+<p>
+The PDF uses an SMask (transparency mask) to hide part of the image.
+When rendered, the mask blacks out a region. But <code>pdfimages</code>
+extracts the raw image data before masking is applied.
+</p>
+<p>
+Opening <code>img-000.png</code> shows the full document with no redaction:
+</p>
+<img src="img/blockedout-revealed.png" alt="Extracted image showing revealed flag">
+<pre class="section-header">---------------------------------------------------------------------------
+FLAG
+---------------------------------------------------------------------------</pre>
+<pre>
+    FLAG{pdf_black_bOx_censOred_badly}
+</pre>
+<pre class="section-header">---------------------------------------------------------------------------
+TAKEAWAYS
+---------------------------------------------------------------------------</pre>
+<ol>
+    <li>Visual redaction is not real redaction. Black boxes, highlights,
+        and masks hide content from viewers but don't remove data.</li>
+    <li><code>pdfimages</code> extracts raw embedded images, bypassing any
+        rendering tricks the PDF uses.</li>
+    <li>Proper redaction requires flattening the PDF and actually removing
+        the underlying content, not just covering it.</li>
+</ol>
+
+</body>
+</html>
